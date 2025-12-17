@@ -1,0 +1,168 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weather Forecast</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    text-align: center;
+    margin: 0;
+    padding: 50px;
+    background: linear-gradient(to right, #a1c4fd, #c2e9fb);
+    transition: background 1s;
+  }
+
+  .container {
+    background: #fff;
+    padding: 40px 30px;
+    border-radius: 20px;
+    display: inline-block;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    min-width: 300px;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+  }
+
+  input {
+    padding: 12px;
+    width: 220px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin-right: 10px;
+    transition: 0.3s;
+  }
+  input:focus {
+    outline: none;
+    border: 2px solid #00796b;
+    box-shadow: 0 0 8px #00796b;
+  }
+
+  button {
+    padding: 12px 20px;
+    border: none;
+    background: #00796b;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s, transform 0.2s;
+  }
+  button:hover {
+    background: #004d40;
+    transform: scale(1.05);
+  }
+
+  #error {
+    color: red;
+    margin-top: 15px;
+    font-weight: 500;
+  }
+
+  #weatherInfo {
+    margin-top: 25px;
+    padding: 15px;
+    border-radius: 15px;
+    background: #f0f0f0;
+    box-shadow: inset 0 5px 15px rgba(0,0,0,0.05);
+    transition: background 0.5s;
+  }
+
+  #weatherInfo img {
+    width: 80px;
+    margin-bottom: 10px;
+    animation: bounce 1s infinite alternate;
+  }
+
+  @keyframes bounce {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-10px); }
+  }
+
+  #weatherInfo h2 {
+    margin: 10px 0 5px 0;
+    font-size: 1.6rem;
+  }
+
+  #weatherInfo p {
+    margin: 5px 0;
+    font-weight: 500;
+  }
+
+  #lastUpdated {
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: #555;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Weather Forecast</h1>
+  <input type="text" id="cityInput" placeholder="Enter city (e.g., London,GB)">
+  <button id="searchBtn">Get Weather</button>
+  <div id="weatherInfo"></div>
+  <p id="error"></p>
+</div>
+
+<script>
+const apiKey = "your_api_key_here"; // Your API key
+const searchBtn = document.getElementById("searchBtn");
+const cityInput = document.getElementById("cityInput");
+const weatherInfo = document.getElementById("weatherInfo");
+const error = document.getElementById("error");
+
+// Button click or Enter key
+searchBtn.addEventListener("click", getWeather);
+cityInput.addEventListener("keypress", e => { if(e.key === "Enter") getWeather(); });
+
+function getWeather() {
+  const city = cityInput.value.trim();
+  if(city === "") { 
+    error.textContent = "Please enter a city!"; 
+    weatherInfo.innerHTML = ""; 
+    return; 
+  }
+  error.textContent = "";
+
+  fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${apiKey}&units=metric`)
+    .then(res => { 
+      if(!res.ok) throw new Error("City not found. Try exact name or include country code (e.g., London,GB)."); 
+      return res.json(); 
+    })
+    .then(data => displayWeather(data))
+    .catch(err => { 
+      error.textContent = err.message; 
+      weatherInfo.innerHTML = ""; 
+    });
+}
+
+function displayWeather(data) {
+  const { name, main:{temp, humidity}, weather } = data;
+  const iconUrl = `https://openweathermap.org/img/wn/${weather[0].icon}@2x.png`;
+
+  const now = new Date();
+
+  weatherInfo.innerHTML = `
+    <h2>${name}</h2>
+    <img src="${iconUrl}" alt="${weather[0].description}">
+    <p>Temperature: ${temp}°C</p>
+    <p>Humidity: ${humidity}%</p>
+    <p>${weather[0].description}</p>
+    <p id="lastUpdated">Last updated: ${now.toLocaleTimeString()}</p>
+  `;
+
+  // Dynamic background based on weather
+  const w = weather[0].main.toLowerCase();
+  if(w.includes("cloud")) document.body.style.background = "linear-gradient(to right, #d7d2cc, #304352)";
+  else if(w.includes("rain")) document.body.style.background = "linear-gradient(to right, #00c6ff, #0072ff)";
+  else if(w.includes("clear")) document.body.style.background = "linear-gradient(to right, #fbc2eb, #a6c1ee)";
+  else document.body.style.background = "linear-gradient(to right, #a1c4fd, #c2e9fb)";
+}
+</script>
+</body>
+</html>
