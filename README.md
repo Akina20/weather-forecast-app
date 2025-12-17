@@ -5,7 +5,6 @@
 **Features:**
 - Search weather by city
 - Shows temperature, humidity, and weather icon
-- Dynamic background based on weather
 - Responsive design and error handling
 
 **How to Use:**
